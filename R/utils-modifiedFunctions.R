@@ -256,8 +256,12 @@
       area <- area[!is.na(area$area), ]
       area <- area[!is.na(area$country), ]
       area <- subset(area, country != "-99")
+      # As of Aug. 23, 2025, there are duplicates in area$country for AU. Need to aggregate to resolve problems down the line with left_join to set nrec_norm.
+      area <- aggregate(area ~ country, data = area, sum)
       #load nrec data
-      dest_url = 'https://github.com/pepbioalerts/vignetteXTRA-occTest/raw/main/ext/ctry_nrec_info.rds'
+      # As of Aug. 22, 2025, there are throttling issues with occ_count hitting the GBIF API too quickly. Recommend devectorizing occ_count calls and looping instead, while wrapping call in tryCatch with a number of attempts (3 seems fine). If attempt fails, Sys.sleep(0.1) seems to be long enough to avoid repeated error.
+      # In the meantime, updated nrec data to kick the can down the line for another 120 days. 
+      dest_url = 'https://raw.githubusercontent.com/mdpillet/occTest/master/ctry_nrec_info.rds'
       outFile = paste0(tempdir(),'/ctry_nrec_info.rds')
       if (!file.exists(outFile)) utils::download.file(url=dest_url,destfile = outFile)
       nrec =  readRDS (outFile)
